@@ -3,7 +3,6 @@
 namespace Rosalana\Tracer\Http\Middleware;
 
 use Illuminate\Http\Request;
-use Rosalana\Core\Facades\App;
 use Rosalana\Tracer\Facades\Tracer;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,14 +15,12 @@ class ApiRoutesTracking
      */
     public function handle(Request $request, \Closure $next): Response
     {
-        if (App::config('tracer.enabled')) {
-            Tracer::emitRoute(
-                group: 'api',
-                method: $request->method(),
-                path: $request->path(),
-                ip: $request->ip(),
-            );
-        }
+        Tracer::emitRoute(
+            group: 'api',
+            method: $request->method(),
+            path: $request->path(),
+            ip: $request->ip(),
+        );
 
         return $next($request);
     }

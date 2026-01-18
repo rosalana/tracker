@@ -2,18 +2,18 @@
 
 namespace Rosalana\Tracer\Services\Basecamp;
 
-use Rosalana\Core\Facades\App;
+use Illuminate\Http\Client\Response;
 use Rosalana\Core\Services\Basecamp\Service;
 
 class TracerService extends Service
 {
-    public function report(array $data): void
+    public function report(array $data): Response
     {
-        $this->manager->post('/tracer/report', $data);
+        return $this->manager->post('/tracer/report', $data);
     }
 
-    public function sync(array $data): void
+    public function sync(array $data): Response
     {
-        $this->manager->post('/tracer/sync', $data);
+        return $this->manager->post('/tracer/sync', $data);
     }
 }

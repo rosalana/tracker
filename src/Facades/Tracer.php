@@ -10,10 +10,11 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Rosalana\Tracer\Models\TracerReport emitException(\Throwable $exception)
  * @method static \Rosalana\Tracer\Models\TracerReport emitOutpostSend(\Rosalana\Core\Services\Outpost\Message $message)
  * @method static \Rosalana\Tracer\Models\TracerReport emitOutpostReceive(\Rosalana\Core\Services\Outpost\Message $message)
- * @method static \Rosalana\Tracer\Models\TracerReport emitBasecamp(string $direction, \Rosalana\Core\Services\Basecamp\Request $request, \Illuminate\Http\Client\Response $response)
+ * @method static \Rosalana\Tracer\Models\TracerReport emitBasecamp(\Rosalana\Core\Services\Basecamp\Request $request, \Illuminate\Http\Client\Response $response)
  * @method static void report()
+ * @method static void reportSingle(\Rosalana\Tracer\Models\TracerReport $tracerReport)
  * @method static \Rosalana\Core\Facades\Trace runtime()
- * 
+ *
  * @see \Rosalana\Tracer\Services\Tracer\Manager
  */
 class Tracer extends Facade

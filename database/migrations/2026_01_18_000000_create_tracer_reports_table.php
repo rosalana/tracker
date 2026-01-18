@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('tracer_reports', function (Blueprint $table) {
             $table->id();
             $table->string('report_id')->unique();
-            $table->string('type');
-            $table->integer('local_user_id')->nullable();
-            $table->integer('remote_user_id')->nullable();
+            $table->string('type')->index();
+            $table->unsignedBigInteger('local_user_id')->nullable()->index();
+            $table->unsignedBigInteger('remote_user_id')->nullable()->index();
             $table->json('data');
             $table->timestamps();
         });

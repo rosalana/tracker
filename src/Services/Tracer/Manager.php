@@ -39,7 +39,7 @@ class Manager
         ]);
 
         if ($this->isCriticalException($exception)) {
-            $report->report();
+            $this->reportSingle($report);
         }
 
         return $report;
@@ -98,12 +98,36 @@ class Manager
             ->chunkById(100, function ($reports) {
                 $payload = $reports->map->toArray()->toArray();
 
-                Basecamp::tracer()->sync($payload);
+                try {
+                    $response = Basecamp::tracer()->sync($payload);
 
-                TracerReport::whereIn('id', $reports->pluck('id'))->delete();
+                    if ($response->successful()) {
+                        TracerReport::whereIn('id', $reports->pluck('id'))->delete();
+                    }
+                } catch (\Throwable $e) {
+                    // Silently fail - reports will be retried on next sync
+                    report($e);
+                }
             });
     }
 
+    public function reportSingle(TracerReport $tracerReport): void
+    {
+        if (!$tracerReport->exists) {
+            return;
+        }
+
+        try {
+            $response = Basecamp::tracer()->report($tracerReport->toArray());
+
+            if ($response->successful()) {
+                $tracerReport->delete();
+            }
+        } catch (\Throwable $e) {
+            // Silently fail - report will be sent on next batch sync
+            report($e);
+        }
+    }
 
     private function isCriticalException(\Throwable $e): bool
     {
@@ -113,10 +137,6 @@ class Manager
             if ($e instanceof $exceptionClass) {
                 return true;
             }
-        }
-
-        if ($e->getCode() >= 500) {
-            return true;
         }
 
         return false;

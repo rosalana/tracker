@@ -5,8 +5,8 @@ namespace Rosalana\Tracer\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Rosalana\Core\Facades\App;
-use Rosalana\Core\Facades\Basecamp;
 use Rosalana\Tracer\Enums\TracerReportType;
+use Rosalana\Tracer\Facades\Tracer;
 
 class TracerReport extends Model
 {
@@ -52,24 +52,15 @@ class TracerReport extends Model
         return $this->remote_user_id;
     }
 
-    public function report(): TracerReport
+    public function report(): void
     {
-        if ($this->exists === false) {
-            return $this;
-        }
-
-        Basecamp::tracer()->report($this->toArray());
-        $this->delete();
-
-        return $this;
+        Tracer::reportSingle($this);
     }
 
-    public function reportIf(callable|bool $condition = true): TracerReport
+    public function reportIf(callable|bool $condition = true): void
     {
         if (is_callable($condition) ? $condition($this) : $condition) {
-            return $this->report();
+            $this->report();
         }
-
-        return $this;
     }
 }
