@@ -1,12 +1,12 @@
 {
-  "name": "rosalana/tracer",
-  "description": "Rosalana tracer is a package that helps trace and log application activities in Rosalana ecosystem.",
+  "name": "rosalana/tracker",
+  "description": "Rosalana tracker is a package that helps trace and log application activities in Rosalana ecosystem.",
   "type": "library",
   "keywords": [
     "laravel",
     "package",
     "rosalana",
-    "tracer"
+    "tracker"
   ],
   "license": "MIT",
   "authors": [
@@ -26,18 +26,18 @@
   },
   "autoload": {
     "psr-4": {
-      "Rosalana\\Tracer\\": "src/"
+      "Rosalana\\Tracker\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Rosalana\\Tracer\\Tests\\": "tests/"
+      "Rosalana\\Tracker\\Tests\\": "tests/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Rosalana\\Tracer\\Providers\\RosalanaTracerServiceProvider"
+        "Rosalana\\Tracker\\Providers\\RosalanaTracerServiceProvider"
       ]
     }
   },

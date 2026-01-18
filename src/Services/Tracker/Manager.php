@@ -1,26 +1,26 @@
 <?php
 
-namespace Rosalana\Tracer\Services\Tracer;
+namespace Rosalana\Tracker\Services\Tracker;
 
 use Rosalana\Core\Facades\App;
 use Rosalana\Core\Facades\Basecamp;
 use Rosalana\Core\Facades\Trace;
-use Rosalana\Tracer\Enums\TracerReportType;
-use Rosalana\Tracer\Models\TracerReport;
+use Rosalana\Tracker\Enums\TrackerReportType;
+use Rosalana\Tracker\Models\TrackerReport;
 
 class Manager
 {
-    public function emit(TracerReportType $type = TracerReportType::CUSTOM, array $data = []): TracerReport
+    public function emit(TrackerReportType $type = TrackerReportType::CUSTOM, array $data = []): TrackerReport
     {
-        return TracerReport::create([
+        return TrackerReport::create([
             'type' => $type,
             'data' => $data,
         ]);
     }
 
-    public function emitRoute(string $group, string $method, string $path, ?string $ip = null): TracerReport
+    public function emitRoute(string $group, string $method, string $path, ?string $ip = null): TrackerReport
     {
-        return $this->emit(TracerReportType::ROUTE, [
+        return $this->emit(TrackerReportType::ROUTE, [
             'group' => $group,
             'method' => $method,
             'path' => $path,
@@ -28,9 +28,9 @@ class Manager
         ]);
     }
 
-    public function emitException(\Throwable $exception): TracerReport
+    public function emitException(\Throwable $exception): TrackerReport
     {
-        $report = $this->emit(TracerReportType::EXCEPTION, [
+        $report = $this->emit(TrackerReportType::EXCEPTION, [
             'message' => $exception->getMessage(),
             'code' => $exception->getCode(),
             'file' => $exception->getFile(),
@@ -49,9 +49,9 @@ class Manager
     /**
      * @param \Rosalana\Core\Services\Outpost\Message $message
      */
-    public function emitOutpostSend($message): TracerReport
+    public function emitOutpostSend($message): TrackerReport
     {
-        return $this->emit(TracerReportType::OUTPOST, [
+        return $this->emit(TrackerReportType::OUTPOST, [
             'direction' => 'send',
             'message' => $message->toArray(),
         ]);
@@ -60,9 +60,9 @@ class Manager
     /** 
      * @param \Rosalana\Core\Services\Outpost\Message $message 
      */
-    public function emitOutpostReceive($message): TracerReport
+    public function emitOutpostReceive($message): TrackerReport
     {
-        return $this->emit(TracerReportType::OUTPOST, [
+        return $this->emit(TrackerReportType::OUTPOST, [
             'direction' => 'receive',
             'message' => $message->toArray(),
         ]);
@@ -72,9 +72,9 @@ class Manager
      * @param \Rosalana\Core\Services\Basecamp\Request $request 
      * @param \Illuminate\Http\Client\Response $response
      */
-    public function emitBasecamp($request, $response): TracerReport
+    public function emitBasecamp($request, $response): TrackerReport
     {
-        return $this->emit(TracerReportType::BASECAMP, [
+        return $this->emit(TrackerReportType::BASECAMP, [
             'request' => [
                 'method' => $request->getMethod(),
                 'endpoint' => $request->getUrl(),
@@ -93,16 +93,16 @@ class Manager
 
     public function report(): void
     {
-        TracerReport::query()
+        TrackerReport::query()
             ->orderBy('id')
             ->chunkById(100, function ($reports) {
                 $payload = $reports->map->toArray()->toArray();
 
                 try {
-                    $response = Basecamp::tracer()->sync($payload);
+                    $response = Basecamp::tracker()->sync($payload);
 
                     if ($response->successful()) {
-                        TracerReport::whereIn('id', $reports->pluck('id'))->delete();
+                        TrackerReport::whereIn('id', $reports->pluck('id'))->delete();
                     }
                 } catch (\Throwable $e) {
                     // Silently fail - reports will be retried on next sync
@@ -111,17 +111,17 @@ class Manager
             });
     }
 
-    public function reportSingle(TracerReport $tracerReport): void
+    public function reportSingle(TrackerReport $TrackerReport): void
     {
-        if (!$tracerReport->exists) {
+        if (!$TrackerReport->exists) {
             return;
         }
 
         try {
-            $response = Basecamp::tracer()->report($tracerReport->toArray());
+            $response = Basecamp::tracker()->report($TrackerReport->toArray());
 
             if ($response->successful()) {
-                $tracerReport->delete();
+                $TrackerReport->delete();
             }
         } catch (\Throwable $e) {
             // Silently fail - report will be sent on next batch sync

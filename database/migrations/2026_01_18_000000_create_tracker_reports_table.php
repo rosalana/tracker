@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void 
     {
-        Schema::create('tracer_reports', function (Blueprint $table) {
+        Schema::create('tracker_reports', function (Blueprint $table) {
             $table->id();
             $table->string('report_id')->unique();
             $table->string('type')->index();
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void 
     {
-        Schema::dropIfExists('tracer_reports');
+        Schema::dropIfExists('tracker_reports');
     }
 };

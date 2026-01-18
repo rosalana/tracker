@@ -1,4 +1,4 @@
-# Rosalana Tracer
+# Rosalana Tracker
 
 This package is a part of the Rosalana eco-system. It provides tracing and logging functionalities for applications built within the Rosalana ecosystem.
 
@@ -9,16 +9,16 @@ This package is a part of the Rosalana eco-system. It provides tracing and loggi
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Features](#features)
-    - [Route Tracing](#route-tracing)
+    - [Route Tracking](#route-tracking)
     - [Exception Logging](#exception-logging)
-    - [Service Tracing](#service-tracing)
+    - [Service Tracking](#service-tracking)
 - [License](#license)
 
 ## Installation
 
-To install the `rosalana/tracer` package, you must first have the `rosalana/core` package installed. If you haven't installed it yet, please refer to the `rosalana/core` documentation.
+To install the `rosalana/traker` package, you must first have the `rosalana/core` package installed. If you haven't installed it yet, please refer to the `rosalana/core` documentation.
 
-After installing the `rosalana/core` package, use the `rosalana:add` command from the Rosalana CLI and select `rosalana/tracer` from the list:
+After installing the `rosalana/core` package, use the `rosalana:add` command from the Rosalana CLI and select `rosalana/tracker` from the list:
 
 ```bash
 php artisan rosalana:add
@@ -38,25 +38,25 @@ After publishing the package, you will find a `rosalana.php` configuration file 
 
 This file will grow over time as you add more Rosalana packages to your application. Each package contributes its own configuration section. The `rosalana.php` file serves as the central configuration hub for all Rosalana packages.
 
-`rosalana/tracer` package provides configuration options for:
+`rosalana/tracker` package provides configuration options for:
 
 - `tracer`: Settings related to tracing functionalities, such as enabling/disabling tracing, setting log behavior, and etc.
 
 
 ## Features
 
-### Route Tracing
-The tracer package automatically traces incoming HTTP requests and logs relevant information, including request method, URL, headers, and response status. This helps in monitoring application performance and identifying potential bottlenecks.
+### Route Tracking
+The tracker package automatically tracks incoming HTTP requests and logs relevant information, including request method, URL, headers, and response status. This helps in monitoring application performance and identifying potential bottlenecks.
 
 Tracking is separated by route groups, allowing you to see how different sections of your application are performing.
 
 ### Exception Logging
-The tracer package captures and logs exceptions that occur within the application. It records details such as exception type, message, stack trace, and context information. This aids in debugging and identifying issues in the application.
+The tracker package captures and logs exceptions that occur within the application. It records details such as exception type, message, stack trace, and context information. This aids in debugging and identifying issues in the application.
 
 Exceptions can be send to external monitoring immediately if you provide the exception class names in the configuration. Other exceptions are stored in the database and sent in batches periodically.
 
-### Service Tracing
-The tracer package integrates with various services within the Rosalana ecosystem, such as Outpost and Basecamp. It traces interactions with these services, logging request and response data, headers, and status codes. This allows you to monitor the communication between your application and external services.
+### Service Tracking
+The tracker package integrates with various services within the Rosalana ecosystem, such as Outpost and Basecamp. It tracks interactions with these services, logging request and response data, headers, and status codes. This allows you to monitor the communication between your application and external services.
 
 ## License
 

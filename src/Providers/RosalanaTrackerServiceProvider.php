@@ -1,25 +1,25 @@
 <?php
 
-namespace Rosalana\Tracer\Providers;
+namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Rosalana\Core\Facades\App;
-use Rosalana\Tracer\Facades\Tracer;
+use Rosalana\Tracker\Facades\Tracker;
 
-class RosalanaTracerServiceProvider extends ServiceProvider
+class RosalanaTrackerServiceProvider extends ServiceProvider
 {
     /**
      * Register everything in the container.
      */
     public function register()
     {
-        $this->app->singleton('rosalana.tracer', function () {
-            return new \Rosalana\Tracer\Services\Tracer\Manager();
+        $this->app->singleton('rosalana.tracker', function () {
+            return new \Rosalana\Tracker\Services\Tracker\Manager();
         });
 
         $this->app->resolving('rosalana.basecamp', function (\Rosalana\Core\Services\Basecamp\Manager $manager) {
-            $manager->registerService('tracer', new \Rosalana\Tracer\Services\Basecamp\TracerService());
+            $manager->registerService('tracker', new \Rosalana\Tracker\Services\Basecamp\TrackerService());
         });
 
         if (App::config('tracer.enabled') !== true) return;
@@ -28,14 +28,14 @@ class RosalanaTracerServiceProvider extends ServiceProvider
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
 
-            Tracer::emitOutpostSend($message);
+            Tracker::emitOutpostSend($message);
         });
 
         App::hooks()->onOutpostReceive(function (array $data) {
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
 
-            Tracer::emitOutpostReceive($message);
+            Tracker::emitOutpostReceive($message);
         });
 
         App::hooks()->onBasecampSend(function (array $data) {
@@ -44,7 +44,7 @@ class RosalanaTracerServiceProvider extends ServiceProvider
             /** @var \Illuminate\Http\Client\Response $response */
             $response = $data['response'];
 
-            Tracer::emitBasecamp($request, $response);
+            Tracker::emitBasecamp($request, $response);
         });
     }
 
@@ -55,20 +55,20 @@ class RosalanaTracerServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \Rosalana\Tracer\Console\Commands\TracerReportCommand::class,
+                \Rosalana\Tracker\Console\Commands\TrackerReportCommand::class,
             ]);
         }
 
         $this->publishes([
             __DIR__ . '/../../database/migrations/' => database_path('migrations'),
-        ], 'rosalana-tracer-migrations');
+        ], 'rosalana-tracker-migrations');
 
         if (App::config('tracer.enabled') !== true) return;
 
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
 
-            $schedule->command('tracer:report')
+            $schedule->command('tracker:report')
                 ->everyFiveMinutes()
                 ->withoutOverlapping()
                 ->onOneServer();
@@ -90,16 +90,16 @@ class RosalanaTracerServiceProvider extends ServiceProvider
 
     public function registerRouteTracking(): void
     {
-        $this->app['router']->pushMiddlewareToGroup('web', \Rosalana\Tracer\Http\Middleware\WebRoutesTracking::class);
-        $this->app['router']->pushMiddlewareToGroup('internal', \Rosalana\Tracer\Http\Middleware\InternalRoutesTracking::class);
-        $this->app['router']->pushMiddlewareToGroup('api', \Rosalana\Tracer\Http\Middleware\ApiRoutesTracking::class);
+        $this->app['router']->pushMiddlewareToGroup('web', \Rosalana\Tracker\Http\Middleware\WebRoutesTracking::class);
+        $this->app['router']->pushMiddlewareToGroup('internal', \Rosalana\Tracker\Http\Middleware\InternalRoutesTracking::class);
+        $this->app['router']->pushMiddlewareToGroup('api', \Rosalana\Tracker\Http\Middleware\ApiRoutesTracking::class);
     }
 
     public function registerExceptionTracking(): void
     {
         $this->app->make('Illuminate\Contracts\Debug\ExceptionHandler')
             ->register(function (\Throwable $e) {
-                Tracer::emitException($e);
+                Tracker::emitException($e);
             });
     }
 }

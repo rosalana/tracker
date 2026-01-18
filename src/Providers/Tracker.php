@@ -1,12 +1,12 @@
 <?php
 
-namespace Rosalana\Tracer\Providers;
+namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Support\Facades\Artisan;
 use Rosalana\Configure\Configure;
 use Rosalana\Core\Contracts\Package;
 
-class Tracer implements Package
+class Tracker implements Package
 {
     public function resolvePublished(): bool
     {
@@ -39,7 +39,7 @@ class Tracer implements Package
                 'label' => 'Publish database migrations',
                 'run' => function () {
                     Artisan::call('vendor:publish', [
-                        '--tag' => 'rosalana-tracer-migrations',
+                        '--tag' => 'rosalana-tracker-migrations',
                         '--force' => true
                     ]);
                 }

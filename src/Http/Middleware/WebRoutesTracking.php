@@ -1,9 +1,9 @@
 <?php
 
-namespace Rosalana\Tracer\Http\Middleware;
+namespace Rosalana\Tracker\Http\Middleware;
 
 use Illuminate\Http\Request;
-use Rosalana\Tracer\Facades\Tracer;
+use Rosalana\Tracker\Facades\Tracker;
 use Symfony\Component\HttpFoundation\Response;
 
 class WebRoutesTracking
@@ -15,7 +15,7 @@ class WebRoutesTracking
      */
     public function handle(Request $request, \Closure $next): Response
     {
-        Tracer::emitRoute(
+        Tracker::emitRoute(
             group: 'web',
             method: $request->method(),
             path: $request->path(),

@@ -1,8 +1,8 @@
 <?php
 
-namespace Rosalana\Tracer\Enums;
+namespace Rosalana\Tracker\Enums;
 
-enum TracerReportType: string
+enum TrackerReportType: string
 {
     case ROUTE = 'route';
     case EXCEPTION = 'exception';

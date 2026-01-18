@@ -1,16 +1,16 @@
 <?php
 
-namespace Rosalana\Tracer\Models;
+namespace Rosalana\Tracker\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Rosalana\Core\Facades\App;
-use Rosalana\Tracer\Enums\TracerReportType;
-use Rosalana\Tracer\Facades\Tracer;
+use Rosalana\Tracker\Enums\TrackerReportType;
+use Rosalana\Tracker\Facades\Tracker;
 
-class TracerReport extends Model
+class TrackerReport extends Model
 {
-    protected $table = 'tracer_reports';
+    protected $table = 'tracker_reports';
 
     protected $fillable = [
         'type',
@@ -22,7 +22,7 @@ class TracerReport extends Model
 
     protected $casts = [
         'data' => 'array',
-        'type' => TracerReportType::class,
+        'type' => TrackerReportType::class,
     ];
 
     protected $appends = [
@@ -32,7 +32,7 @@ class TracerReport extends Model
 
     protected static function booted()
     {
-        static::creating(function (TracerReport $report) {
+        static::creating(function (TrackerReport $report) {
             $report->report_id = Str::uuid()->toString();
 
             if ($user = auth()->user()) {
@@ -54,7 +54,7 @@ class TracerReport extends Model
 
     public function report(): void
     {
-        Tracer::reportSingle($this);
+        Tracker::reportSingle($this);
     }
 
     public function reportIf(callable|bool $condition = true): void
