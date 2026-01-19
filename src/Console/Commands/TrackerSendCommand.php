@@ -5,15 +5,15 @@ namespace Rosalana\Tracker\Console\Commands;
 use Illuminate\Console\Command;
 use Rosalana\Tracker\Facades\Tracker;
 
-class TrackerReportCommand extends Command
+class TrackerSendCommand extends Command
 {
-    protected $signature = 'tracker:report';
+    protected $signature = 'tracker:send';
 
     protected $description = 'Send tracker reports to Basecamp';
 
     public function handle()
     {
-        Tracker::report();
+        Tracker::sendCaptured();
 
         $this->info('Tracker reports sent.');
     }

@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Facades\Tracker;
+use Rosalana\Tracker\Services\Tracker\Report;
 
 class RosalanaTrackerServiceProvider extends ServiceProvider
 {
@@ -22,20 +23,16 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             $manager->registerService('tracker', new \Rosalana\Tracker\Services\Basecamp\TrackerService());
         });
 
-        if (App::config('tracer.enabled') !== true) return;
+        if (App::config('tracker.enabled') !== true) return;
 
         App::hooks()->onOutpostSend(function (array $data) {
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
-
-            Tracker::emitOutpostSend($message);
         });
 
         App::hooks()->onOutpostReceive(function (array $data) {
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
-
-            Tracker::emitOutpostReceive($message);
         });
 
         App::hooks()->onBasecampSend(function (array $data) {
@@ -43,8 +40,6 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             $request = $data['request'];
             /** @var \Illuminate\Http\Client\Response $response */
             $response = $data['response'];
-
-            Tracker::emitBasecamp($request, $response);
         });
     }
 
@@ -53,26 +48,20 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                \Rosalana\Tracker\Console\Commands\TrackerReportCommand::class,
-            ]);
-        }
-
         $this->publishes([
             __DIR__ . '/../../database/migrations/' => database_path('migrations'),
         ], 'rosalana-tracker-migrations');
 
-        if (App::config('tracer.enabled') !== true) return;
+        if (App::config('tracker.enabled') !== true) return;
 
-        $this->app->booted(function () {
-            $schedule = $this->app->make(Schedule::class);
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Rosalana\Tracker\Console\Commands\TrackerSendCommand::class,
+            ]);
+        }
 
-            $schedule->command('tracker:report')
-                ->everyFiveMinutes()
-                ->withoutOverlapping()
-                ->onOneServer();
-        });
+        $this->registerSendSchedule();
+        $this->registerUserLoggingListener();
 
         if (!$this->app->runningInConsole()) {
 
@@ -99,7 +88,41 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
     {
         $this->app->make('Illuminate\Contracts\Debug\ExceptionHandler')
             ->register(function (\Throwable $e) {
-                Tracker::emitException($e);
+                Tracker::report(new Report(
+                    type: \Rosalana\Tracker\Enums\TrackerReportType::EXCEPTION,
+                    payload: [
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'trace' => $e->getTraceAsString(),
+                    ]
+                ));
             });
+    }
+
+    public function registerSendSchedule(): void
+    {
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+
+            $schedule->command('tracker:send')
+                ->everyThirtyMinutes()
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
+    }
+
+    public function registerUserLoggingListener(): void
+    {
+        \Illuminate\Support\Facades\Event::listen(function (\Illuminate\Auth\Events\Authenticated $event) {
+            $user = $event->user;
+            Tracker::configureScope(function (\Rosalana\Tracker\Services\Tracker\Scope $scope) use ($user): void {
+                $scope->setUser([
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ]);
+            });
+        });
     }
 }

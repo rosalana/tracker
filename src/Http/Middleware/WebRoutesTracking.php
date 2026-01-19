@@ -2,26 +2,12 @@
 
 namespace Rosalana\Tracker\Http\Middleware;
 
-use Illuminate\Http\Request;
-use Rosalana\Tracker\Facades\Tracker;
-use Symfony\Component\HttpFoundation\Response;
+use Rosalana\Tracker\Contracts\RouteTracking;
 
-class WebRoutesTracking
+class WebRoutesTracking implements RouteTracking
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, \Closure $next): Response
+    public function group(): string
     {
-        Tracker::emitRoute(
-            group: 'web',
-            method: $request->method(),
-            path: $request->path(),
-            ip: $request->ip(),
-        );
-
-        return $next($request);
+        return 'web';
     }
 }

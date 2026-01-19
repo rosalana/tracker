@@ -3,64 +3,44 @@
 namespace Rosalana\Tracker\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-use Rosalana\Core\Facades\App;
+use Illuminate\Database\Query\Builder;
 use Rosalana\Tracker\Enums\TrackerReportType;
-use Rosalana\Tracker\Facades\Tracker;
 
 class TrackerReport extends Model
 {
     protected $table = 'tracker_reports';
 
     protected $fillable = [
-        'type',
         'report_id',
-        'local_user_id',
-        'remote_user_id',
-        'data',
+        'type',
+        'payload',
+        'level',
+        'fingerprint',
+        'metrics',
+        'scope',
+        'sent_at',
     ];
 
     protected $casts = [
-        'data' => 'array',
+        'payload' => 'array',
+        'metrics' => 'array',
+        'scope' => 'array',
         'type' => TrackerReportType::class,
     ];
 
-    protected $appends = [
-        'app',
-        'user_id',
-    ];
-
-    protected static function booted()
+    public function scopeSent(Builder $query)
     {
-        static::creating(function (TrackerReport $report) {
-            $report->report_id = Str::uuid()->toString();
-
-            if ($user = auth()->user()) {
-                $report->local_user_id = $user->id;
-                $report->remote_user_id = App::context()->scope("user.{$user->id}")->get('remote_id');
-            }
-        });
+        return $query->whereNotNull('sent_at');
     }
 
-    public function getAppAttribute(): string
+    public function scopeUnsent(Builder $query)
     {
-        return App::slug();
+        return $query->whereNull('sent_at');
     }
 
-    public function getUserIdAttribute(): ?int
+    public function markAsSent(): void
     {
-        return $this->remote_user_id;
-    }
-
-    public function report(): void
-    {
-        Tracker::reportSingle($this);
-    }
-
-    public function reportIf(callable|bool $condition = true): void
-    {
-        if (is_callable($condition) ? $condition($this) : $condition) {
-            $this->report();
-        }
+        $this->sent_at = now();
+        $this->save();
     }
 }
