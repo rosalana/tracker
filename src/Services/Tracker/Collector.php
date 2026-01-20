@@ -53,7 +53,7 @@ class Collector
                 $data = $reports->map(fn($report) => $report->toArray())->toArray();
                 $response = Basecamp::fallback(fn() => null)->tracker()->report($data);
 
-                if ($response && $response->successful()) {
+                if ($response) {
                     $reports->each(fn($report) => $report->markAsSent());
                 }
             });
