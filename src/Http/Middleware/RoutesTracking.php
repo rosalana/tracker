@@ -32,19 +32,25 @@ class RoutesTracking implements RouteTracking
 
         $start = microtime(true);
 
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (\Throwable $e) {
+            $response = null;
+            throw $e;
+        } finally {
 
-        $duration = microtime(true) - $start;
+            $duration = microtime(true) - $start;
 
-        Tracker::report(new Report(
-            type: \Rosalana\Tracker\Enums\TrackerReportType::ROUTE,
-            payload: [
-                'status_code' => $response->getStatusCode(),
-            ],
-            metrics: [
-                'duration_ms' => (int) ($duration * 1000),
-            ],
-        ));
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::ROUTE,
+                payload: [
+                    'status_code' => $response?->getStatusCode() ?? 500,
+                ],
+                metrics: [
+                    'duration_ms' => (int) ($duration * 1000),
+                ],
+            ));
+        }
 
         return $response;
     }
