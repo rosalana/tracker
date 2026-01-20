@@ -13,19 +13,31 @@ class Report
     public function __construct(
         public TrackerReportType $type,
         public array $payload = [],
-        public LogLevel $level = LogLevel::INFO,
+        public string $level = LogLevel::INFO,
         public ?string $fingerprint = null,
         public array $metrics = [],
     ) {
         $this->reportId = uniqid('report_', true);
     }
 
+    /**
+     * Attaches scope snapshot information to the report.
+     * 
+     * @param array $scope
+     * @return void
+     */
     public function attachScope(array $scope): void
     {
         $this->scope = $scope;
     }
 
-    public function setLevel(LogLevel $level): void
+    /**
+     * Sets the log level for the report.
+     * 
+     * @param string $level
+     * @return void
+     */
+    public function setLevel(string $level): void
     {
         $this->level = $level;
     }
@@ -42,9 +54,14 @@ class Report
             LogLevel::ALERT,
             LogLevel::CRITICAL,
             LogLevel::ERROR,
-        ]);
+        ], true);
     }
 
+    /**
+     * Converts the report to an array representation.
+     * 
+     * @return array
+     */
     public function toArray(): array
     {
         return [
