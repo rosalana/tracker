@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Facades\Tracker;
 use Rosalana\Tracker\Services\Tracker\Report;
+use Rosalana\Tracker\Support\Fingerprint;
 
 class RosalanaTrackerServiceProvider extends ServiceProvider
 {
@@ -23,16 +24,42 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             $manager->registerService('tracker', new \Rosalana\Tracker\Services\Basecamp\TrackerService());
         });
 
-        if (App::config('tracker.enabled') !== true) return;
+        if (! App::config('tracker.enabled')) return;
 
         App::hooks()->onOutpostSend(function (array $data) {
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
+
+            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_SEND,
+                payload: [
+                    'namespace' => $message->namespace,
+                    'targets' => $message->to,
+                    'origin' => $message->from ?? App::slug(),
+                    'correlationId' => $message->correlationId,
+                ],
+                fingerprint: Fingerprint::make("outpost", $message->namespace),
+            ));
         });
 
         App::hooks()->onOutpostReceive(function (array $data) {
             /** @var \Rosalana\Core\Services\Outpost\Message $message */
             $message = $data['message'];
+
+            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_RECEIVE,
+                payload: [
+                    'namespace' => $message->namespace,
+                    'targets' => $message->to ?? [App::slug()],
+                    'origin' => $message->from,
+                    'correlationId' => $message->correlationId,
+                ],
+                fingerprint: Fingerprint::make("outpost", $message->namespace),
+            ));
         });
 
         App::hooks()->onBasecampSend(function (array $data) {
@@ -40,6 +67,21 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             $request = $data['request'];
             /** @var \Illuminate\Http\Client\Response $response */
             $response = $data['response'];
+
+            $requestId = uniqid('basecamp_', true);
+            Tracker::scope()->setLink('basecamp_request_id', $requestId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::BASECAMP,
+                payload: [
+                    'method' => $request->getMethod(),
+                    'endpoint' => $request->getUrl(),
+                    'target' => $request->getTarget(),
+                    'from' => App::slug(),
+                    'status' => $response->status(),
+                ],
+                fingerprint: Fingerprint::make("basecamp", $request->getUrl()),
+            ));
         });
     }
 
@@ -52,13 +94,13 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             __DIR__ . '/../../database/migrations/' => database_path('migrations'),
         ], 'rosalana-tracker-migrations');
 
-        if (App::config('tracker.enabled') !== true) return;
-
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Rosalana\Tracker\Console\Commands\TrackerSendCommand::class,
             ]);
         }
+
+        if (! App::config('tracker.enabled')) return;
 
         $this->registerSendSchedule();
         $this->registerUserLoggingListener();
@@ -90,6 +132,8 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             ->register(function (\Throwable $e) {
                 Tracker::report(new Report(
                     type: \Rosalana\Tracker\Enums\TrackerReportType::EXCEPTION,
+                    level: \Rosalana\Tracker\Support\ExceptionLevelResolver::resolve($e),
+                    fingerprint: \Rosalana\Tracker\Support\ExceptionFingerprint::make($e),
                     payload: [
                         'message' => $e->getMessage(),
                         'file' => $e->getFile(),
@@ -116,9 +160,12 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
     {
         \Illuminate\Support\Facades\Event::listen(function (\Illuminate\Auth\Events\Authenticated $event) {
             $user = $event->user;
-            Tracker::configureScope(function (\Rosalana\Tracker\Services\Tracker\Scope $scope) use ($user): void {
+
+            $remoteId = App::context()->scope("user.{$user->id}")->get('remote_id');
+
+            Tracker::configureScope(function (\Rosalana\Tracker\Services\Tracker\Scope $scope) use ($user, $remoteId): void {
                 $scope->setUser([
-                    'id' => $user->id,
+                    'id' => $remoteId,
                     'name' => $user->name,
                     'email' => $user->email,
                 ]);
