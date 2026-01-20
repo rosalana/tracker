@@ -3,6 +3,7 @@
 namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Facades\Tracker;
@@ -104,6 +105,7 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
 
         if (! App::config('tracker.enabled')) return;
 
+        $this->registerRoutes();
         $this->registerSendSchedule();
         $this->registerUserLoggingListener();
 
@@ -156,6 +158,15 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
                 ->withoutOverlapping()
                 ->onOneServer();
         });
+    }
+
+    public function registerRoutes(): void
+    {
+        Route::middleware('internal')
+            ->prefix('internal')
+            ->group(function () {
+                $this->loadRoutesFrom(__DIR__ . '/../../routes/internal.php');
+            });
     }
 
     public function registerUserLoggingListener(): void
