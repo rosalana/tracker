@@ -35,7 +35,8 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             Tracker::report(new Report(
                 type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_SEND,
                 payload: [
-                    'namespace' => $message->namespace,
+                    'name' => $message->name(),
+                    'status' => $message->status(),
                     'targets' => $message->to,
                     'origin' => $message->from ?? App::slug(),
                     'correlationId' => $message->correlationId,
@@ -53,7 +54,8 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             Tracker::report(new Report(
                 type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_RECEIVE,
                 payload: [
-                    'namespace' => $message->namespace,
+                    'name' => $message->name(),
+                    'status' => $message->status(),
                     'targets' => $message->to ?? [App::slug()],
                     'origin' => $message->from,
                     'correlationId' => $message->correlationId,
