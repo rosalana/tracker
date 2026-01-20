@@ -12,5 +12,5 @@ enum TrackerReportType: string
 
     case BASECAMP = 'basecamp';
 
-    case CUSTOM = 'custom';
+    case UNCATEGORIZED = 'uncategorized';
 }

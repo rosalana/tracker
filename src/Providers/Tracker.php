@@ -3,6 +3,7 @@
 namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Support\Facades\Artisan;
+use Psr\Log\LogLevel;
 use Rosalana\Configure\Configure;
 use Rosalana\Core\Contracts\Package;
 
@@ -27,10 +28,8 @@ class Tracker implements Package
                             "Configuration for the internal tracing system used for performance monitoring and debugging.",
                         )
                         ->value('enabled', false)
-                        ->value('critical_exceptions', [
-                            \Error::class,
-                            \PDOException::class,
-                        ])
+                        ->value('emergency_exceptions', '[]')
+                        ->value('critical_exceptions', '[]')
 
                         ->save();
                 }

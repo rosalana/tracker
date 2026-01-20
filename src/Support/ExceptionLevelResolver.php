@@ -3,11 +3,23 @@
 namespace Rosalana\Tracker\Support;
 
 use Psr\Log\LogLevel;
+use Rosalana\Core\Facades\App;
 
 class ExceptionLevelResolver
 {
     public static function resolve(\Throwable $exception): string
     {
+        $emergencyExceptions = App::config('tracer.emergency_exceptions', []);
+        $criticalExceptions = App::config('tracer.critical_exceptions', []);
+
+        if (in_array(get_class($exception), $emergencyExceptions, true)) {
+            return LogLevel::EMERGENCY;
+        }
+
+        if (in_array(get_class($exception), $criticalExceptions, true)) {
+            return LogLevel::CRITICAL;
+        }
+
         if ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
             return match (true) {
                 $exception->getStatusCode() >= 500 => LogLevel::ERROR,
