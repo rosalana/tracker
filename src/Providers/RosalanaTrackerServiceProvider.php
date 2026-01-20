@@ -40,7 +40,7 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
                     'origin' => $message->from ?? App::slug(),
                     'correlationId' => $message->correlationId,
                 ],
-                fingerprint: Fingerprint::make("outpost", $message->namespace),
+                fingerprint: Fingerprint::make("outpost", $message->name()),
             ));
         });
 
@@ -58,7 +58,7 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
                     'origin' => $message->from,
                     'correlationId' => $message->correlationId,
                 ],
-                fingerprint: Fingerprint::make("outpost", $message->namespace),
+                fingerprint: Fingerprint::make("outpost", $message->name()),
             ));
         });
 
