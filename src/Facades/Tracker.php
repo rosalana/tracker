@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void report(\Rosalana\Tracker\Services\Tracker\Report $report)
  * @method static void reportImmediate(\Rosalana\Tracker\Services\Tracker\Report $report)
  * @method static void sendCaptured()
+ * @method static void flushCaptured()
  * 
  * @see \Rosalana\Tracker\Services\Tracker\Manager
  */

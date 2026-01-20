@@ -72,4 +72,12 @@ class Collector
 
         $sent->delete();
     }
+
+    /**
+     * Flushes all collected reports from the database.
+     */
+    public function flush(): void
+    {
+        TrackerReport::query()->delete();
+    }
 }

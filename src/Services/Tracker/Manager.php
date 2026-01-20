@@ -55,4 +55,9 @@ class Manager
     {
         $this->collector->sendCollected();
     }
+
+    public function flushCaptured(): void
+    {
+        $this->collector->flush();
+    }
 }
