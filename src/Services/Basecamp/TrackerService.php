@@ -10,7 +10,7 @@ class TrackerService extends Service
 {
     public function report(array $reports): Response
     {
-        return $this->manager->post('/tracker/report', [
+        return $this->manager->post('apps/traces/report', [
             'app' => App::slug(),
             'date' => now()->toDateString(),
             'reports' => $reports,
