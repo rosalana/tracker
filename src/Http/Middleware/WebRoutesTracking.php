@@ -4,7 +4,7 @@ namespace Rosalana\Tracker\Http\Middleware;
 
 use Rosalana\Tracker\Contracts\RouteTracking;
 
-class WebRoutesTracking implements RouteTracking
+class WebRoutesTracking extends RoutesTracking implements RouteTracking
 {
     public function group(): string
     {
