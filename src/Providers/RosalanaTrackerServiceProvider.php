@@ -77,18 +77,27 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
     public function registerExceptionTracking(): void
     {
         $this->app->make('Illuminate\Contracts\Debug\ExceptionHandler')
-            ->register(function (\Throwable $e) {
-                Tracker::report(new Report(
-                    type: \Rosalana\Tracker\Enums\TrackerReportType::EXCEPTION,
-                    level: \Rosalana\Tracker\Support\ExceptionLevelResolver::resolve($e),
-                    fingerprint: \Rosalana\Tracker\Support\ExceptionFingerprint::make($e),
-                    payload: [
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                        'trace' => $e->getTraceAsString(),
-                    ]
-                ));
+            ->reportable(function (\Throwable $e) {
+                static $reporting = false;
+                if ($reporting) {
+                    return;
+                }
+                $reporting = true;
+                try {
+                    Tracker::report(new Report(
+                        type: \Rosalana\Tracker\Enums\TrackerReportType::EXCEPTION,
+                        level: \Rosalana\Tracker\Support\ExceptionLevelResolver::resolve($e),
+                        fingerprint: \Rosalana\Tracker\Support\ExceptionFingerprint::make($e),
+                        payload: [
+                            'message' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                            'trace' => $e->getTraceAsString(),
+                        ]
+                    ));
+                } finally {
+                    $reporting = false;
+                }
             });
     }
 
