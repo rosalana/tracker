@@ -2,8 +2,10 @@
 
 namespace Rosalana\Tracker\Services\Tracker;
 
-use Rosalana\Core\Facades\App;
 use Rosalana\Core\Facades\Basecamp;
+use Rosalana\Tracker\Events\ReportCollected;
+use Rosalana\Tracker\Events\ReportDispatched;
+use Rosalana\Tracker\Events\ReportsFlushed;
 use Rosalana\Tracker\Models\TrackerReport;
 
 class Collector
@@ -19,7 +21,7 @@ class Collector
         if ($report->shouldSendImmediate()) {
             $this->collectImmediate($report);
         } else {
-            App::hooks()->run('tracker:collect', ['report' => $report]);
+            event(new ReportCollected($report));
             TrackerReport::create($report->toArray());
         }
     }
@@ -32,7 +34,7 @@ class Collector
      */
     public function collectImmediate(Report $report): void
     {
-        App::hooks()->run('tracker:immediate', ['report' => $report]);
+        event(new ReportDispatched($report));
 
         Basecamp::fallback(fn() => $this->collect($report))
             ->tracker()
@@ -68,7 +70,7 @@ class Collector
     {
         $sent = TrackerReport::sent();
 
-        App::hooks()->run('tracker:flush', ['reports' => $sent]);
+        event(new ReportsFlushed($sent->get()));
 
         $sent->delete();
     }

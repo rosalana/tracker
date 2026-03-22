@@ -11,7 +11,7 @@ class Tracker implements Package
 {
     public function resolvePublished(): bool
     {
-        return Configure::file('rosalana')->has('tracer.enabled');
+        return Configure::file('rosalana')->has('tracker.enabled');
     }
 
     public function publish(): array
@@ -22,12 +22,12 @@ class Tracker implements Package
                 'run' => function () {
                     Configure::file('rosalana')
 
-                        ->section('.tracer')
+                        ->section('.tracker')
                         ->withComment(
                             'Trace System',
                             "Configuration for the internal tracing system used for performance monitoring and debugging.",
                         )
-                        ->value('enabled', false)
+                        ->value('enabled', 'true')
                         ->value('emergency_exceptions', '[]')
                         ->value('critical_exceptions', '[]')
 

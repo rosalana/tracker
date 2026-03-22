@@ -40,7 +40,7 @@ This file will grow over time as you add more Rosalana packages to your applicat
 
 `rosalana/tracker` package provides configuration options for:
 
-- `tracer`: Settings related to tracing functionalities, such as enabling/disabling tracing, setting log behavior, and etc.
+- `tracker`: Settings related to tracing functionalities, such as enabling/disabling tracing, setting log behavior, and etc.
 
 
 ## Features
@@ -57,6 +57,41 @@ Exceptions can be send to external monitoring immediately if you provide the exc
 
 ### Service Tracking
 The tracker package integrates with various services within the Rosalana ecosystem, such as Outpost and Basecamp. It tracks interactions with these services, logging request and response data, headers, and status codes. This allows you to monitor the communication between your application and external services.
+
+## Events
+
+The tracker package dispatches Laravel events at key points in the tracking lifecycle. You can listen to these events to extend tracker behavior or react to tracking activity.
+
+### Core Events (from `rosalana/core`)
+
+The tracker listens to the following core events to automatically capture service interactions:
+
+| Event | Trigger |
+|---|---|
+| `Rosalana\Core\Events\OutpostMessageSent` | An Outpost message was sent |
+| `Rosalana\Core\Events\OutpostMessageReceived` | An Outpost message was received |
+| `Rosalana\Core\Events\BasecampRequestSent` | A Basecamp HTTP request completed |
+
+### Tracker Events (from `rosalana/tracker`)
+
+The tracker dispatches its own events that you can listen to:
+
+| Event | Trigger | Payload |
+|---|---|---|
+| `Rosalana\Tracker\Events\ReportCollected` | A report was stored to the local database (deferred) | `$event->report` |
+| `Rosalana\Tracker\Events\ReportDispatched` | A report was sent immediately to Basecamp | `$event->report` |
+| `Rosalana\Tracker\Events\ReportsFlushed` | Sent reports were cleaned up from the database | `$event->reports` |
+
+Example usage:
+
+```php
+use Rosalana\Tracker\Events\ReportCollected;
+
+Event::listen(function (ReportCollected $event) {
+    // React to a new report being stored
+    $report = $event->report;
+});
+```
 
 ## License
 

@@ -3,8 +3,12 @@
 namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Rosalana\Core\Events\BasecampRequestSent;
+use Rosalana\Core\Events\OutpostMessageReceived;
+use Rosalana\Core\Events\OutpostMessageSent;
 use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Facades\Tracker;
 use Rosalana\Tracker\Services\Tracker\Report;
@@ -25,67 +29,6 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             $manager->registerService('tracker', new \Rosalana\Tracker\Services\Basecamp\TrackerService());
         });
 
-        if (! App::config('tracker.enabled')) return;
-
-        App::hooks()->onOutpostSend(function (array $data) {
-            /** @var \Rosalana\Core\Services\Outpost\Message $message */
-            $message = $data['message'];
-
-            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
-
-            Tracker::report(new Report(
-                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_SEND,
-                payload: [
-                    'name' => $message->name(),
-                    'status' => $message->status(),
-                    'targets' => $message->to,
-                    'origin' => $message->from ?? App::slug(),
-                    'correlationId' => $message->correlationId,
-                ],
-                fingerprint: Fingerprint::make("outpost", $message->name()),
-            ));
-        });
-
-        App::hooks()->onOutpostReceive(function (array $data) {
-            /** @var \Rosalana\Core\Services\Outpost\Message $message */
-            $message = $data['message'];
-
-            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
-
-            Tracker::report(new Report(
-                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_RECEIVE,
-                payload: [
-                    'name' => $message->name(),
-                    'status' => $message->status(),
-                    'targets' => $message->to ?? [App::slug()],
-                    'origin' => $message->from,
-                    'correlationId' => $message->correlationId,
-                ],
-                fingerprint: Fingerprint::make("outpost", $message->name()),
-            ));
-        });
-
-        App::hooks()->onBasecampSend(function (array $data) {
-            /** @var \Rosalana\Core\Services\Basecamp\Request $request */
-            $request = $data['request'];
-            /** @var \Illuminate\Http\Client\Response $response */
-            $response = $data['response'];
-
-            $requestId = uniqid('basecamp_', true);
-            Tracker::scope()->setLink('basecamp_request_id', $requestId);
-
-            Tracker::report(new Report(
-                type: \Rosalana\Tracker\Enums\TrackerReportType::BASECAMP,
-                payload: [
-                    'method' => $request->getMethod(),
-                    'endpoint' => $request->getUrl(),
-                    'target' => $request->getTarget(),
-                    'from' => App::slug(),
-                    'status' => $response->status(),
-                ],
-                fingerprint: Fingerprint::make("basecamp", $request->getUrl()),
-            ));
-        });
     }
 
     /**
@@ -108,6 +51,7 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerSendSchedule();
         $this->registerUserLoggingListener();
+        $this->registerServiceIntegrationListeners();
 
         if (!$this->app->runningInConsole()) {
 
@@ -169,9 +113,68 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
             });
     }
 
+    public function registerServiceIntegrationListeners(): void
+    {
+        Event::listen(function (OutpostMessageSent $event) {
+            $message = $event->message;
+
+            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_SEND,
+                payload: [
+                    'name' => $message->name(),
+                    'status' => $message->status(),
+                    'targets' => $message->to,
+                    'origin' => $message->from ?? App::slug(),
+                    'correlationId' => $message->correlationId,
+                ],
+                fingerprint: Fingerprint::make("outpost", $message->name()),
+            ));
+        });
+
+        Event::listen(function (OutpostMessageReceived $event) {
+            $message = $event->message;
+
+            Tracker::scope()->setLink('outpost_correlation_id', $message->correlationId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::OUTPOST_RECEIVE,
+                payload: [
+                    'name' => $message->name(),
+                    'status' => $message->status(),
+                    'targets' => $message->to ?? [App::slug()],
+                    'origin' => $message->from,
+                    'correlationId' => $message->correlationId,
+                ],
+                fingerprint: Fingerprint::make("outpost", $message->name()),
+            ));
+        });
+
+        Event::listen(function (BasecampRequestSent $event) {
+            $request = $event->request;
+            $response = $event->response;
+
+            $requestId = uniqid('basecamp_', true);
+            Tracker::scope()->setLink('basecamp_request_id', $requestId);
+
+            Tracker::report(new Report(
+                type: \Rosalana\Tracker\Enums\TrackerReportType::BASECAMP,
+                payload: [
+                    'method' => $request->getMethod(),
+                    'endpoint' => $request->getUrl(),
+                    'target' => $request->getTarget(),
+                    'from' => App::slug(),
+                    'status' => $response->status(),
+                ],
+                fingerprint: Fingerprint::make("basecamp", $request->getUrl()),
+            ));
+        });
+    }
+
     public function registerUserLoggingListener(): void
     {
-        \Illuminate\Support\Facades\Event::listen(function (\Illuminate\Auth\Events\Authenticated $event) {
+        Event::listen(function (\Illuminate\Auth\Events\Authenticated $event) {
             $user = $event->user;
 
             $remoteId = App::context()->scope("user.{$user->id}")->get('remote_id');
