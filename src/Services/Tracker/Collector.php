@@ -21,8 +21,7 @@ class Collector
         if ($report->shouldSendImmediate()) {
             $this->collectImmediate($report);
         } else {
-            event(new ReportCollected($report));
-            TrackerReport::create($report->toArray());
+            $this->save($report);
         }
     }
 
@@ -36,7 +35,7 @@ class Collector
     {
         event(new ReportDispatched($report));
 
-        Basecamp::fallback(fn() => $this->collect($report))
+        Basecamp::fallback(fn() => $this->save($report))
             ->tracker()
             ->report([$report->toArray()]);
     }
@@ -81,5 +80,17 @@ class Collector
     public function flush(): void
     {
         TrackerReport::query()->delete();
+    }
+
+    /**
+     * Saves a report to the database and fires the ReportCollected event.
+     * 
+     * @param Report $report The report to be saved.
+     * @return void
+     */
+    private function save(Report $report): void
+    {
+        event(new ReportCollected($report));
+        TrackerReport::create($report->toArray());
     }
 }
