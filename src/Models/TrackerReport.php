@@ -3,7 +3,7 @@
 namespace Rosalana\Tracker\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Rosalana\Tracker\Enums\TrackerReportType;
 
 class TrackerReport extends Model
