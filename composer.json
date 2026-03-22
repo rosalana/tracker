@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Rosalana\\Tracker\\Providers\\RosalanaTracerServiceProvider"
+        "Rosalana\\Tracker\\Providers\\RosalanaTrackerServiceProvider"
       ]
     }
   },
