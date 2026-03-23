@@ -11,7 +11,9 @@ use Rosalana\Core\Events\OutpostMessageReceived;
 use Rosalana\Core\Events\OutpostMessageSent;
 use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Facades\Tracker;
+use Rosalana\Tracker\Services\Tracker\Collector;
 use Rosalana\Tracker\Services\Tracker\Report;
+use Rosalana\Tracker\Services\Tracker\Scope;
 use Rosalana\Tracker\Support\Fingerprint;
 
 class RosalanaTrackerServiceProvider extends ServiceProvider
@@ -22,13 +24,12 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('rosalana.tracker', function () {
-            return new \Rosalana\Tracker\Services\Tracker\Manager();
+            return new \Rosalana\Tracker\Services\Tracker\Manager(new Collector(), new Scope());
         });
 
         $this->app->resolving('rosalana.basecamp', function (\Rosalana\Core\Services\Basecamp\Manager $manager) {
             $manager->registerService('tracker', new \Rosalana\Tracker\Services\Basecamp\TrackerService());
         });
-
     }
 
     /**

@@ -3,8 +3,9 @@
 namespace Rosalana\Tracker\Services\Tracker;
 
 use Rosalana\Core\Facades\Basecamp;
+use Rosalana\Tracker\Events\ReportChunkDispatched;
 use Rosalana\Tracker\Events\ReportCollected;
-use Rosalana\Tracker\Events\ReportDispatched;
+use Rosalana\Tracker\Events\ReportDispatchedImmediately;
 use Rosalana\Tracker\Events\ReportsFlushed;
 use Rosalana\Tracker\Models\TrackerReport;
 
@@ -33,9 +34,8 @@ class Collector
      */
     public function collectImmediate(Report $report): void
     {
-        event(new ReportDispatched($report));
-
-        Basecamp::fallback(fn() => $this->save($report))
+        Basecamp::onFail(fn() => $this->save($report))
+            ->onSuccess(fn() => event(new ReportDispatchedImmediately($report)))
             ->tracker()
             ->report([$report->toArray()]);
     }
@@ -52,11 +52,14 @@ class Collector
             ->chunk(100, function ($reports) {
 
                 $data = $reports->map(fn($report) => $report->toArray())->toArray();
-                $response = Basecamp::fallback(fn() => null)->tracker()->report($data);
 
-                if ($response) {
-                    $reports->each(fn($report) => $report->markAsSent());
-                }
+                Basecamp::onFail(fn() => false)
+                    ->onSuccess(function () use ($reports) {
+                        $reports->each(fn($report) => $report->markAsSent());
+                        event(new ReportChunkDispatched($reports));
+                    })
+                    ->tracker()
+                    ->report($data);
             });
 
         $this->cleanup();

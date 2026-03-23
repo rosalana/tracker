@@ -9,9 +9,9 @@ This package is a part of the Rosalana eco-system. It provides tracing and loggi
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Features](#features)
-    - [Route Tracking](#route-tracking)
-    - [Exception Logging](#exception-logging)
-    - [Service Tracking](#service-tracking)
+  - [Route Tracking](#route-tracking)
+  - [Exception Logging](#exception-logging)
+  - [Service Tracking](#service-tracking)
 - [License](#license)
 
 ## Installation
@@ -42,20 +42,22 @@ This file will grow over time as you add more Rosalana packages to your applicat
 
 - `tracker`: Settings related to tracing functionalities, such as enabling/disabling tracing, setting log behavior, and etc.
 
-
 ## Features
 
 ### Route Tracking
+
 The tracker package automatically tracks incoming HTTP requests and logs relevant information, including request method, URL, headers, and response status. This helps in monitoring application performance and identifying potential bottlenecks.
 
 Tracking is separated by route groups, allowing you to see how different sections of your application are performing.
 
 ### Exception Logging
+
 The tracker package captures and logs exceptions that occur within the application. It records details such as exception type, message, stack trace, and context information. This aids in debugging and identifying issues in the application.
 
 Exceptions can be send to external monitoring immediately if you provide the exception class names in the configuration. Other exceptions are stored in the database and sent in batches periodically.
 
 ### Service Tracking
+
 The tracker package integrates with various services within the Rosalana ecosystem, such as Outpost and Basecamp. It tracks interactions with these services, logging request and response data, headers, and status codes. This allows you to monitor the communication between your application and external services.
 
 ## Events
@@ -66,21 +68,22 @@ The tracker package dispatches Laravel events at key points in the tracking life
 
 The tracker listens to the following core events to automatically capture service interactions:
 
-| Event | Trigger |
-|---|---|
-| `Rosalana\Core\Events\OutpostMessageSent` | An Outpost message was sent |
-| `Rosalana\Core\Events\OutpostMessageReceived` | An Outpost message was received |
-| `Rosalana\Core\Events\BasecampRequestSent` | A Basecamp HTTP request completed |
+| Event                                         | Trigger                           |
+| --------------------------------------------- | --------------------------------- |
+| `Rosalana\Core\Events\OutpostMessageSent`     | An Outpost message was sent       |
+| `Rosalana\Core\Events\OutpostMessageReceived` | An Outpost message was received   |
+| `Rosalana\Core\Events\BasecampRequestSent`    | A Basecamp HTTP request completed |
 
 ### Tracker Events (from `rosalana/tracker`)
 
 The tracker dispatches its own events that you can listen to:
 
-| Event | Trigger | Payload |
-|---|---|---|
-| `Rosalana\Tracker\Events\ReportCollected` | A report was stored to the local database (deferred) | `$event->report` |
-| `Rosalana\Tracker\Events\ReportDispatched` | A report was sent immediately to Basecamp | `$event->report` |
-| `Rosalana\Tracker\Events\ReportsFlushed` | Sent reports were cleaned up from the database | `$event->reports` |
+| Event                                                 | Trigger                                              | Payload           |
+| ----------------------------------------------------- | ---------------------------------------------------- | ----------------- |
+| `Rosalana\Tracker\Events\ReportCollected`             | A report was stored to the local database (deferred) | `$event->report`  |
+| `Rosalana\Tracker\Events\ReportDispatchedImmediately` | A report was sent immediately to Basecamp            | `$event->report`  |
+| `Rosalana\Tracker\Events\ReportChunkDispatched`       | A chunk of reports was sent to Basecamp              | `$event->reports` |
+| `Rosalana\Tracker\Events\ReportsFlushed`              | Sent reports were cleaned up from the database       | `$event->reports` |
 
 Example usage:
 

@@ -4,15 +4,10 @@ namespace Rosalana\Tracker\Services\Tracker;
 
 class Manager
 {
-    private Scope $scope;
-
-    private Collector $collector;
-
-    public function __construct()
-    {
-        $this->collector = new Collector();
-        $this->scope = new Scope();
-    }
+    public function __construct(
+        private Collector $collector,
+        private Scope $scope
+    ) {}
 
     /**
      * Gets the global scope.
