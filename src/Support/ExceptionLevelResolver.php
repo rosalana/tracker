@@ -2,56 +2,56 @@
 
 namespace Rosalana\Tracker\Support;
 
-use Psr\Log\LogLevel;
 use Rosalana\Core\Facades\App;
+use Rosalana\Tracker\Enums\TrackerReportLevel;
 
 class ExceptionLevelResolver
 {
-    public static function resolve(\Throwable $exception): string
+    public static function resolve(\Throwable $exception): TrackerReportLevel
     {
         $emergencyExceptions = App::config('tracer.emergency_exceptions', []);
         $criticalExceptions = App::config('tracer.critical_exceptions', []);
 
         if (in_array(get_class($exception), $emergencyExceptions, true)) {
-            return LogLevel::EMERGENCY;
+            return TrackerReportLevel::EMERGENCY;
         }
 
         if (in_array(get_class($exception), $criticalExceptions, true)) {
-            return LogLevel::CRITICAL;
+            return TrackerReportLevel::CRITICAL;
         }
 
         if ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
             return match (true) {
-                $exception->getStatusCode() >= 500 => LogLevel::ERROR,
-                $exception->getStatusCode() >= 400 => LogLevel::WARNING,
-                default => LogLevel::INFO,
+                $exception->getStatusCode() >= 500 => TrackerReportLevel::ERROR,
+                $exception->getStatusCode() >= 400 => TrackerReportLevel::WARNING,
+                default => TrackerReportLevel::INFO,
             };
         }
 
         if ($exception instanceof \Rosalana\Core\Exceptions\Http\RosalanaHttpException) {
             return match (true) {
-                $exception->getCode() >= 500 => LogLevel::CRITICAL,
-                $exception->getCode() >= 400 => LogLevel::WARNING,
-                default => LogLevel::INFO,
+                $exception->getCode() >= 500 => TrackerReportLevel::CRITICAL,
+                $exception->getCode() >= 400 => TrackerReportLevel::WARNING,
+                default => TrackerReportLevel::INFO,
             };
         }
 
         if ($exception instanceof \Illuminate\Validation\ValidationException) {
-            return LogLevel::WARNING;
+            return TrackerReportLevel::WARNING;
         }
 
         if ($exception instanceof \Illuminate\Auth\AuthenticationException) {
-            return LogLevel::WARNING;
+            return TrackerReportLevel::WARNING;
         }
 
         if ($exception instanceof \Illuminate\Auth\Access\AuthorizationException) {
-            return LogLevel::WARNING;
+            return TrackerReportLevel::WARNING;
         }
 
         if ($exception instanceof \Error) {
-            return LogLevel::CRITICAL;
+            return TrackerReportLevel::CRITICAL;
         }
 
-        return LogLevel::ERROR;
+        return TrackerReportLevel::ERROR;
     }
 }

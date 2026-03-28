@@ -2,7 +2,7 @@
 
 namespace Rosalana\Tracker\Services\Tracker;
 
-use Psr\Log\LogLevel;
+use Rosalana\Tracker\Enums\TrackerReportLevel;
 use Rosalana\Tracker\Enums\TrackerReportType;
 
 class Report
@@ -13,7 +13,7 @@ class Report
     public function __construct(
         public TrackerReportType $type,
         public array $payload = [],
-        public string $level = LogLevel::INFO,
+        public TrackerReportLevel $level = TrackerReportLevel::INFO,
         public ?string $fingerprint = null,
         public array $metrics = [],
     ) {
@@ -37,7 +37,7 @@ class Report
      * @param string $level
      * @return void
      */
-    public function setLevel(string $level): void
+    public function setLevel(TrackerReportLevel $level): void
     {
         $this->level = $level;
     }
@@ -50,10 +50,10 @@ class Report
     public function shouldSendImmediate(): bool
     {
         return in_array($this->level, [
-            LogLevel::EMERGENCY,
-            LogLevel::ALERT,
-            LogLevel::CRITICAL,
-            LogLevel::ERROR,
+            TrackerReportLevel::EMERGENCY,
+            TrackerReportLevel::ALERT,
+            TrackerReportLevel::CRITICAL,
+            TrackerReportLevel::ERROR,
         ], true);
     }
 
@@ -68,7 +68,7 @@ class Report
             'report_id' => $this->reportId,
             'type' => $this->type->value,
             'payload' => $this->payload,
-            'level' => $this->level,
+            'level' => $this->level->value,
             'fingerprint' => $this->fingerprint,
             'metrics' => $this->metrics,
             'scope' => $this->scope,

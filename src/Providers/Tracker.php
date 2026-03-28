@@ -3,7 +3,6 @@
 namespace Rosalana\Tracker\Providers;
 
 use Illuminate\Support\Facades\Artisan;
-use Psr\Log\LogLevel;
 use Rosalana\Configure\Configure;
 use Rosalana\Core\Contracts\Package;
 
