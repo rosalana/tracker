@@ -34,7 +34,6 @@ class Report
     /**
      * Sets the log level for the report.
      * 
-     * @param string $level
      * @return void
      */
     public function setLevel(TrackerReportLevel $level): void
