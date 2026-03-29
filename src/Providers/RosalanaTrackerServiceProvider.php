@@ -96,6 +96,8 @@ class RosalanaTrackerServiceProvider extends ServiceProvider
                             'trace' => $e->getTraceAsString(),
                         ]
                     ));
+                } catch (\Throwable) {
+                    // Silently ignore — never let reporting errors cascade into the exception handler
                 } finally {
                     $reporting = false;
                 }
