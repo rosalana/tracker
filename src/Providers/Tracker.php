@@ -29,6 +29,10 @@ class Tracker implements Package
                         ->value('enabled', 'true')
                         ->value('emergency_exceptions', '[]')
                         ->value('critical_exceptions', '[]')
+                        ->section('route_threshold')
+                            ->value('critical', "4")
+                            ->value('alert', "2")
+                            ->value('warning', "1")
 
                         ->save();
                 }

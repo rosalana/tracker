@@ -3,7 +3,9 @@
 namespace Rosalana\Tracker\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Rosalana\Core\Facades\App;
 use Rosalana\Tracker\Contracts\RouteTracking;
+use Rosalana\Tracker\Enums\TrackerReportLevel;
 use Rosalana\Tracker\Facades\Tracker;
 use Rosalana\Tracker\Services\Tracker\Report;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,6 +45,7 @@ class RoutesTracking implements RouteTracking
 
             Tracker::report(new Report(
                 type: \Rosalana\Tracker\Enums\TrackerReportType::ROUTE,
+                level: $this->reportLevelByDuration($duration),
                 payload: [
                     'status_code' => $response?->getStatusCode() ?? 500,
                 ],
@@ -53,6 +56,27 @@ class RoutesTracking implements RouteTracking
         }
 
         return $response;
+    }
+
+    protected function reportLevelByDuration(float $duration): TrackerReportLevel
+    {
+        $critical_threshold = App::config('tracker.route_threshold.critical', 4);
+        $alert_threshold = App::config('tracker.route_threshold.alert', 2);
+        $warning_threshold = App::config('tracker.route_threshold.warning', 1);
+
+        if ($duration >= $critical_threshold) {
+            return TrackerReportLevel::CRITICAL;
+        }
+
+        if ($duration >= $alert_threshold) {
+            return TrackerReportLevel::ALERT;
+        }
+
+        if ($duration >= $warning_threshold) {
+            return TrackerReportLevel::WARNING;
+        }
+
+        return TrackerReportLevel::INFO;
     }
 
     public function group(): string
