@@ -8,6 +8,7 @@ use Rosalana\Tracker\Contracts\RouteTracking;
 use Rosalana\Tracker\Enums\TrackerReportLevel;
 use Rosalana\Tracker\Facades\Tracker;
 use Rosalana\Tracker\Services\Tracker\Report;
+use Rosalana\Tracker\Support\Fingerprint;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoutesTracking implements RouteTracking
@@ -46,6 +47,7 @@ class RoutesTracking implements RouteTracking
             Tracker::report(new Report(
                 type: \Rosalana\Tracker\Enums\TrackerReportType::ROUTE,
                 level: $this->reportLevelByDuration($duration),
+                fingerprint: Fingerprint::make('route', $request->method(), $request->route()->getName() ?? $request->path()),
                 payload: [
                     'status_code' => $response?->getStatusCode() ?? 500,
                 ],
