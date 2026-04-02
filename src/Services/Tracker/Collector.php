@@ -49,7 +49,7 @@ class Collector
     {
         TrackerReport::unsent()
             ->orderBy('created_at')
-            ->chunkById(100, function ($reports) {
+            ->chunkById(1000, function ($reports) {
 
                 $data = $reports->map(fn($report) => $report->toArray())->toArray();
 
